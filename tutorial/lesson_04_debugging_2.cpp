@@ -151,11 +151,11 @@ int main(int argc, char **argv) {
         // expression itself using C++ streams:
         Var fizz("fizz"), buzz("buzz");
         Expr e = 1;
-        for (int i = 2; i < 100; i++) {
-            if (i % 3 == 0 && i % 5 == 0) e += fizz*buzz;
-            else if (i % 3 == 0) e += fizz;
-            else if (i % 5 == 0) e += buzz;
-            else e += i;
+        for (int i = 2; i < 5; i++) {
+            if (i % 2 == 0) 
+		e += buzz;
+            else 
+		e += i;
         }
         std::cout << "Printing a complex Expr: " << e << "\n";
     }
