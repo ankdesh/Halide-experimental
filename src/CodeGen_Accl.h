@@ -1,5 +1,5 @@
-#ifndef HALIDE_CODEGEN_C_H
-#define HALIDE_CODEGEN_C_H
+#ifndef HALIDE_CODEGEN_ACCL_H
+#define HALIDE_CODEGEN_ACCL_H
 
 /** \file
  *
@@ -25,9 +25,7 @@ class CodeGen_Accl : public IRPrinter {
 public:
     enum OutputKind {
         CHeader,
-        CPlusPlusHeader,
-        CImplementation,
-        CPlusPlusImplementation,
+        CImplementation
     };
 
     /** Initialize a C code generator pointing at a particular output
@@ -91,14 +89,12 @@ protected:
 
     /** Return true if only generating an interface, which may be extern "C" or C++ */
     bool is_header() {
-        return output_kind == CHeader ||
-               output_kind == CPlusPlusHeader;
+        return output_kind == CHeader;
     }
 
     /** Return true if generating C++ linkage. */
     bool is_c_plus_plus_interface() {
-        return output_kind == CPlusPlusHeader ||
-               output_kind == CPlusPlusImplementation;
+        return false; /// FIXME:ankdesh . Not needed
     }
 
     /** Open a new C scope (i.e. throw in a brace, increase the indent) */
