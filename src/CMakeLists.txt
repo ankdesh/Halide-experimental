@@ -238,6 +238,7 @@ set(HEADER_FILES
   Closure.h
   CodeGen_ARM.h
   CodeGen_C.h
+  CodeGen_Accl.h
   CodeGen_GPU_Dev.h
   CodeGen_GPU_Host.h
   CodeGen_Hexagon.h
@@ -388,6 +389,7 @@ add_library(Halide ${HALIDE_LIBRARY_TYPE}
   Closure.cpp
   CodeGen_ARM.cpp
   CodeGen_C.cpp
+  CodeGen_Accl.cpp
   CodeGen_GPU_Dev.cpp
   CodeGen_GPU_Host.cpp
   CodeGen_Hexagon.cpp
