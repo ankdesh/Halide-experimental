@@ -12,6 +12,16 @@ using namespace Halide;
 #include "halide_image_io.h"
 using namespace Halide::Tools;
 
+Func createBlurX(Func& input16, Var& x, Var& y, Var& c){
+
+    Func blur_x("blur_x");
+    blur_x(x, y, c) = (input16(x-1, y, c) +
+                       2 * input16(x, y, c) +
+                       input16(x+1, y, c)) / 4;
+    return blur_x;
+}
+
+
 int main(int argc, char **argv) {
     // First we'll declare some Vars to use below.
     Var x("x"), y("y"), c("c");
@@ -24,10 +34,7 @@ int main(int argc, char **argv) {
     input16(x,y,c) = cast<uint16_t>(input(x,y,c));
 
     // Blur it horizontally:
-    Func blur_x("blur_x");
-    blur_x(x, y, c) = (input16(x-1, y, c) +
-                       2 * input16(x, y, c) +
-                       input16(x+1, y, c)) / 4;
+    Func blur_x = createBlurX(input16, x,y,c);
 
     // Blur it vertically:
     Func blur_y("blur_y");
