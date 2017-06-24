@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     //Halide::Buffer<int> result = f.realize(32, 32);
     f.print_loop_nest();
     //dlopen("libOpenCL.so", RTLD_LAZY);
-    f.compile_to_lowered_stmt("simple_gpu.html", {}, Halide::StmtOutputFormat::HTML, target);
+    f.compile_to_lowered_stmt("simple_gpu.txt", {}, Halide::StmtOutputFormat::Text, target);
     
 	
     // Print the result.
