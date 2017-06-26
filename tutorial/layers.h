@@ -62,9 +62,9 @@ class ConvUint8: public Layer<uint8_t> {
                   std::string layerName, 
                   Schedule sched = Schedule::CPU) : 
                     Layer     (inLayer, layerName),
-                    ifmHeight(inLayer->out_dim_size(2)),
-                    ifmWidth (inLayer->out_dim_size(1)),
-                    ifmDepth   (inLayer->out_dim_size(0)),
+                    ifmHeight (inLayer->out_dim_size(0)),
+                    ifmWidth  (inLayer->out_dim_size(1)),
+                    ifmDepth  (inLayer->out_dim_size(2)),
                     fNum      (numF),
                     fHeight   (fWidth),
                     fWidth    (fHeight),
@@ -77,25 +77,28 @@ class ConvUint8: public Layer<uint8_t> {
             // Boundary condition
             // This creates a padded input and avoids checking boundary
             // conditions while computing the actual convolution
-            f_in_bound = BoundaryConditions::repeat_edge(
-                                    inLayer->getForwardFunc(),
-                                    0, ifmWidth,
-                                    0, ifmHeight);
+            //f_in_bound = BoundaryConditions::repeat_edge(
+            //                        inLayer->getForwardFunc(),
+            //                        0, ifmWidth,
+            //                        0, ifmHeight);
 
             // Create parameters
-            Buffer<uint8_t> W(fWidth, fHeight, ifmDepth, fNum), b(numF);
+            Buffer<uint8_t> W(fWidth, fHeight, ifmDepth, numF), b(numF);
             params.push_back(W); params.push_back(b);
             // TODO ankdesh Read Weights from mem
 
             // Define forward
             RDom r(0, fWidth, 0, fHeight, 0, ifmDepth);
-            
+           
+            Func& inData = inLayer->getForwardFunc();
+            forward(x, y, z) = sum(W(r.x, r.y, r.z, z) * inData(x * stride + r.x - pad, y * stride + r.y - pad , z));
+ 
             // Initialize to bias
-            forward(x, y, z, n) = b(z);
-            forward(x, y, z, n) += W(r.x, r.y, r.z, z) *
-                                   f_in_bound(x*stride + r.x - pad,
-                                              y*stride + r.y - pad,
-                                              r.z, n);
+            //forward(x, y, z) = b(z);
+            //forward(x, y, z) += W(r.x, r.y, r.z, z) *
+            //                       inLayer->getForwardFunc()(x*stride + r.x - pad,
+            //                                  y*stride + r.y - pad,
+            //                                  r.z);
             // Set the schedule
             setDefaultSchedule_(sched, r);
         }
@@ -141,13 +144,11 @@ class ConvUint8: public Layer<uint8_t> {
         
                 forward.update().reorder(y, x, r.z);
                 forward.compute_root();
-                forward.fuse(z, n, par).parallel(par);
                 forward.update().reorder(x, y, r.z);
                 forward.update().split(y, y, y_t, y_block_size);
                 forward.update().split(z, z, z_t, o_block_size);
                 forward.update().reorder(y_t, z_t, y, r.z, z);
                 forward.update().vectorize(x, vec_len);
-                forward.update().fuse(z, n, par).parallel(par);
                 forward.update().unroll(r.x);
                 forward.update().unroll(r.y);
                 f_in_bound.compute_at(forward, par);
@@ -162,7 +163,7 @@ class DataLayerUint8: public Layer<uint8_t> {
             (int ifmWidth, 
             int ifmHeight, 
             int ifmDepth,
-            Buffer<uint8_t> &data,
+            Buffer<uint8_t>& data,
             std::string layerName) : 
                 Layer(0, layerName),
                 ifmWidth (ifmWidth),
@@ -170,14 +171,15 @@ class DataLayerUint8: public Layer<uint8_t> {
                 ifmDepth (ifmDepth) {
             
                 // Define forward
-                forward =
-                  BoundaryConditions::repeat_edge(data, 0, ifmWidth, 0, ifmHeight);
+                //forward =
+                // BoundaryConditions::repeat_edge(data, 0, ifmWidth, 0, ifmHeight);
+                forward (x,y,z) = data (x,y,z);
         }
 
-        int out_dims() { return 4; }
+        int out_dims() { return 3; }
 
         int out_dim_size( int i) {
-            assert(i < 4);
+            assert(i < 3);
             int size = 0;
             if (i == 0)
                 size = ifmWidth;
