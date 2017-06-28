@@ -153,6 +153,12 @@ class ConvUint8: public Layer<uint8_t> {
                 forward.update().unroll(r.y);
                 f_in_bound.compute_at(forward, par);
             }
+            else if (sched == Schedule::NPU){
+                Var xi,yi,zi;
+                forward.split(z,z,zi,32);
+                forward.tile(x,y,xi,yi,64,64);
+                forward.reorder(yi,xi,zi,z,y,x);
+            }
         }
 
 };
